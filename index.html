@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>K&S Intake Quality Grader</title>
+    <style>
+        :root {
+            --color-bg-primary: #f8fafc;
+            --color-bg-secondary: #ffffff;
+            --color-text-primary: #0f172a;
+            --color-text-secondary: #475569;
+            --color-border: #e2e8f0;
+            --color-primary: #0284c7;
+            --color-primary-hover: #0369a1;
+            --color-success: #10b981;
+            --color-warning: #f59e0b;
+            --color-danger: #ef4444;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --color-bg-primary: #0f172a;
+                --color-bg-secondary: #1e293b;
+                --color-text-primary: #f1f5f9;
+                --color-text-secondary: #cbd5e1;
+                --color-border: #334155;
+                --color-primary: #38bdf8;
+                --color-primary-hover: #0ea5e9;
+            }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--color-bg-primary);
+            color: var(--color-text-primary);
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: var(--color-bg-secondary);
+            padding: 24px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            border: 1px solid var(--color-border);
+        }
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: var(--color-text-secondary);
+            font-size: 14px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            border-bottom: 2px solid var(--color-border);
+            padding-bottom: 0;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            color: var(--color-text-secondary);
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 500;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.2s;
+        }
+
+        .tab:hover {
+            color: var(--color-text-primary);
+        }
+
+        .tab.active {
+            color: var(--color-primary);
+            border-bottom-color: var(--color-primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-section {
+            background: var(--color-bg-secondary);
+            padding: 24px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            border: 1px solid var(--color-border);
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: var(--color-text-primary);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 6px;
+            color: var(--color-text-primary);
+        }
+
+        input[type="text"],
+        input[type="date"],
+        select,
+        textarea {
+            padding: 10px 12px;
+            border: 1px solid var(--color-border);
+            border-radius: 6px;
+            font-size: 14px;
+            background: var(--color-bg-primary);
+            color: var(--color-text-primary);
+            transition: border-color 0.2s;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--color-primary);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .checklist-item {
+            display: grid;
+            grid-template-columns: 40px 1fr 100px 100px 100px 2fr;
+            gap: 12px;
+            align-items: center;
+            padding: 12px;
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            margin-bottom: 12px;
+            background: var(--color-bg-primary);
+        }
+
+        .checklist-item .item-num {
+            font-weight: 600;
+            color: var(--color-text-secondary);
+        }
+
+        .checklist-item .item-text {
+            font-size: 14px;
+        }
+
+        .radio-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .radio-group input[type="radio"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .radio-group label {
+            margin: 0;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .gate-item {
+            display: grid;
+            grid-template-columns: 1fr 80px 80px 2fr;
+            gap: 12px;
+            align-items: center;
+            padding: 12px;
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            margin-bottom: 12px;
+            background: var(--color-bg-primary);
+        }
+
+        .gate-item.flagged {
+            border-color: var(--color-danger);
+            background: rgba(239, 68, 68, 0.05);
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--color-primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--color-primary-hover);
+        }
+
+        .btn-secondary {
+            background: var(--color-border);
+            color: var(--color-text-primary);
+        }
+
+        .btn-secondary:hover {
+            background: var(--color-text-secondary);
+            color: white;
+        }
+
+        .score-card {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin: 20px 0;
+        }
+
+        .score-item {
+            background: var(--color-bg-primary);
+            padding: 16px;
+            border-radius: 8px;
+            border: 1px solid var(--color-border);
+            text-align: center;
+        }
+
+        .score-label {
+            font-size: 12px;
+            color: var(--color-text-secondary);
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .score-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--color-primary);
+        }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 14px;
+        }
+
+        .alert-warning {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid var(--color-warning);
+            color: var(--color-warning);
+        }
+
+        .alert-danger {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--color-danger);
+            color: var(--color-danger);
+        }
+
+        .alert-success {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid var(--color-success);
+            color: var(--color-success);
+        }
+
+        .actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        th {
+            background: var(--color-bg-primary);
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--color-text-secondary);
+        }
+
+        td {
+            font-size: 14px;
+        }
+
+        tr:hover {
+            background: var(--color-bg-primary);
+        }
+
+        .export-section {
+            margin-top: 24px;
+            text-align: center;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .staff-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 16px;
+        }
+
+        .staff-card {
+            background: var(--color-bg-primary);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .staff-name {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .staff-stats {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+        }
+
+        .stat-label {
+            color: var(--color-text-secondary);
+        }
+
+        .stat-value {
+            font-weight: 600;
+        }
+
+        .grade {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .grade-a { background: var(--color-success); color: white; }
+        .grade-b { background: #3b82f6; color: white; }
+        .grade-c { background: var(--color-warning); color: white; }
+        .grade-d { background: #f97316; color: white; }
+        .grade-f { background: var(--color-danger); color: white; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>K&S Intake Quality Grader</h1>
+            <p class="subtitle">Intake Paralegal Performance KPI Tracking & Bonus Scorecard</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('review')">New Review</button>
+            <button class="tab" onclick="switchTab('history')">Review History</button>
+            <button class="tab" onclick="switchTab('grades')">Staff Grades</button>
+        </div>
+
+        <!-- NEW REVIEW TAB -->
+        <div id="review-tab" class="tab-content active">
+            <form id="reviewForm">
+                <div class="form-section">
+                    <div class="section-title">Matter Information</div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Matter / Contact Name</label>
+                            <input type="text" id="matterName" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Matter ID</label>
+                            <input type="text" id="matterId" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Assigned Intake Paralegal</label>
+                            <input type="text" id="paralegal" required list="paralegalList">
+                            <datalist id="paralegalList"></datalist>
+                        </div>
+                        <div class="form-group">
+                            <label>Reviewer</label>
+                            <input type="text" id="reviewer" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Review Date</label>
+                            <input type="date" id="reviewDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Practice Area</label>
+                            <input type="text" id="practiceArea">
+                        </div>
+                        <div class="form-group">
+                            <label>Pipeline Stage</label>
+                            <input type="text" id="pipelineStage">
+                        </div>
+                        <div class="form-group">
+                            <label>Primary Track(s)</label>
+                            <input type="text" id="primaryTrack">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <div class="section-title">A) Bonus Eligibility Gates</div>
+                    <p style="font-size: 13px; color: var(--color-text-secondary); margin-bottom: 16px;">
+                        Any "Yes" triggers escalation and may impact bonus eligibility
+                    </p>
+                    <div id="gatesContainer">
+                        <!-- Gates populated by JavaScript - should show 4 items with Yes/No radio buttons -->
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <div class="section-title">B) Intake Quality Checklist</div>
+                    <p style="font-size: 13px; color: var(--color-text-secondary); margin-bottom: 16px;">
+                        Pass/Fail/N/A for each criterion (N/A excluded from score calculation)
+                    </p>
+                    <div id="checklistContainer">
+                        <!-- Checklist populated by JavaScript - should show 10 items with Pass/Fail/N/A radio buttons -->
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <div class="section-title">Review Summary</div>
+                    <div class="score-card" id="scoreDisplay">
+                        <div class="score-item">
+                            <div class="score-label">Pass</div>
+                            <div class="score-value" id="passCount">0</div>
+                        </div>
+                        <div class="score-item">
+                            <div class="score-label">Fail</div>
+                            <div class="score-value" id="failCount">0</div>
+                        </div>
+                        <div class="score-item">
+                            <div class="score-label">N/A</div>
+                            <div class="score-value" id="naCount">0</div>
+                        </div>
+                        <div class="score-item">
+                            <div class="score-label">Score %</div>
+                            <div class="score-value" id="scorePercent">0%</div>
+                        </div>
+                    </div>
+                    <div id="gateAlert"></div>
+                    <div class="form-group">
+                        <label>Top Issues / Action Items</label>
+                        <textarea id="actionItems" placeholder="1) Issue one&#10;2) Issue two&#10;3) Issue three"></textarea>
+                    </div>
+                </div>
+
+                <div class="actions">
+                    <button type="submit" class="btn btn-primary">Save Review</button>
+                    <button type="button" class="btn btn-secondary" onclick="resetForm()">Clear Form</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- HISTORY TAB -->
+        <div id="history-tab" class="tab-content">
+            <div class="form-section">
+                <div class="section-title">Review History</div>
+                <div id="historyStats" class="score-card"></div>
+                <table id="historyTable">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Matter</th>
+                            <th>Paralegal</th>
+                            <th>Reviewer</th>
+                            <th>Score</th>
+                            <th>Gates Failed</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyBody"></tbody>
+                </table>
+                <div class="export-section">
+                    <button class="btn btn-primary" onclick="exportToCSV()">Export to CSV</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- GRADES TAB -->
+        <div id="grades-tab" class="tab-content">
+            <div class="form-section">
+                <div class="section-title">Staff Performance Grades</div>
+                <p style="font-size: 13px; color: var(--color-text-secondary); margin-bottom: 16px;">
+                    Calculated from all reviews for each paralegal
+                </p>
+                <div id="staffGrades" class="staff-summary"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const gates = [
+            "Avoidable duplicate contact/matter created?",
+            "Practice Area incorrect / not corrected after intake form?",
+            "Missing proof for sent letter/packet (PDF + receipt + tracking + delivery/RR)?",
+            "Urgent <30-day deadline not escalated within 1 business day?"
+        ];
+
+        const checklist = [
+            "Search First; no avoidable duplicates; contact info accurate.",
+            "Matter setup correct (naming + assigned + PA = \"New Intake\" + stage set).",
+            "Intake Form All Matters submitted; dependent questions answered.",
+            "Practice Area corrected to final area (or flagged + task if unclear).",
+            "Intake Notes + creditor list complete (urgency + key flags + docs promised).",
+            "Refer-out / urgent-deadline screening documented and routed. (if applicable)",
+            "Pay-to-pay protocol executed (auth + e-sign attempt; docs requested/labeled). (if applicable)",
+            "AI Intake Summary pasted into Matter Notes (SharePoint prompt). (if applicable)",
+            "Docs organized per protocol (Intake + Client Docs; naming/merges; Unsorted <24h). (if applicable)",
+            "Follow-up diligence met and logged (docs chase/retainer/10-day steps). (if applicable)"
+        ];
+
+        let reviews = JSON.parse(localStorage.getItem('intakeReviews') || '[]');
+
+        function initializeForm() {
+            const gatesContainer = document.getElementById('gatesContainer');
+            gates.forEach((gate, index) => {
+                const div = document.createElement('div');
+                div.className = 'gate-item';
+                div.id = `gate-${index}`;
+                div.innerHTML = `
+                    <div class="item-text">${gate}</div>
+                    <div class="radio-group">
+                        <input type="radio" name="gate${index}" value="yes" id="gate${index}-yes" onchange="updateGateStatus()">
+                        <label for="gate${index}-yes">Yes</label>
+                    </div>
+                    <div class="radio-group">
+                        <input type="radio" name="gate${index}" value="no" id="gate${index}-no" checked onchange="updateGateStatus()">
+                        <label for="gate${index}-no">No</label>
+                    </div>
+                    <input type="text" placeholder="Notes" id="gateNotes${index}">
+                `;
+                gatesContainer.appendChild(div);
+            });
+
+            const checklistContainer = document.getElementById('checklistContainer');
+            checklist.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = 'checklist-item';
+                div.innerHTML = `
+                    <div class="item-num">${index + 1}</div>
+                    <div class="item-text">${item}</div>
+                    <div class="radio-group">
+                        <input type="radio" name="check${index}" value="pass" id="check${index}-pass" onchange="calculateScore()">
+                        <label for="check${index}-pass">Pass</label>
+                    </div>
+                    <div class="radio-group">
+                        <input type="radio" name="check${index}" value="fail" id="check${index}-fail" onchange="calculateScore()">
+                        <label for="check${index}-fail">Fail</label>
+                    </div>
+                    <div class="radio-group">
+                        <input type="radio" name="check${index}" value="na" id="check${index}-na" onchange="calculateScore()">
+                        <label for="check${index}-na">N/A</label>
+                    </div>
+                    <input type="text" placeholder="Notes / Evidence" id="checkNotes${index}">
+                `;
+                checklistContainer.appendChild(div);
+            });
+
+            document.getElementById('reviewDate').valueAsDate = new Date();
+        }
+
+        function updateGateStatus() {
+            let anyGateFailed = false;
+            gates.forEach((gate, index) => {
+                const yes = document.getElementById(`gate${index}-yes`).checked;
+                const gateDiv = document.getElementById(`gate-${index}`);
+                if (yes) {
+                    gateDiv.classList.add('flagged');
+                    anyGateFailed = true;
+                } else {
+                    gateDiv.classList.remove('flagged');
+                }
+            });
+
+            const alertDiv = document.getElementById('gateAlert');
+            if (anyGateFailed) {
+                alertDiv.innerHTML = '<div class="alert alert-danger">⚠️ One or more bonus eligibility gates failed. This may impact bonus eligibility.</div>';
+            } else {
+                alertDiv.innerHTML = '<div class="alert alert-success">✓ All bonus eligibility gates passed.</div>';
+            }
+        }
+
+        function calculateScore() {
+            let pass = 0, fail = 0, na = 0;
+
+            checklist.forEach((item, index) => {
+                const selected = document.querySelector(`input[name="check${index}"]:checked`);
+                if (selected) {
+                    if (selected.value === 'pass') pass++;
+                    else if (selected.value === 'fail') fail++;
+                    else if (selected.value === 'na') na++;
+                }
+            });
+
+            const applicable = pass + fail;
+            const scorePercent = applicable > 0 ? Math.round((pass / applicable) * 100) : 0;
+
+            document.getElementById('passCount').textContent = pass;
+            document.getElementById('failCount').textContent = fail;
+            document.getElementById('naCount').textContent = na;
+            document.getElementById('scorePercent').textContent = scorePercent + '%';
+        }
+
+        function resetForm() {
+            document.getElementById('reviewForm').reset();
+            document.getElementById('reviewDate').valueAsDate = new Date();
+            document.querySelectorAll('.gate-item').forEach(div => div.classList.remove('flagged'));
+            document.getElementById('gateAlert').innerHTML = '';
+            calculateScore();
+        }
+
+        document.getElementById('reviewForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const gateResults = gates.map((gate, index) => ({
+                gate: gate,
+                result: document.querySelector(`input[name="gate${index}"]:checked`).value,
+                notes: document.getElementById(`gateNotes${index}`).value
+            }));
+
+            const checkResults = checklist.map((item, index) => {
+                const selected = document.querySelector(`input[name="check${index}"]:checked`);
+                return {
+                    item: item,
+                    result: selected ? selected.value : 'na',
+                    notes: document.getElementById(`checkNotes${index}`).value
+                };
+            });
+
+            const pass = parseInt(document.getElementById('passCount').textContent);
+            const fail = parseInt(document.getElementById('failCount').textContent);
+            const na = parseInt(document.getElementById('naCount').textContent);
+            const scorePercent = parseInt(document.getElementById('scorePercent').textContent.replace('%', ''));
+
+            const gatesFailed = gateResults.filter(g => g.result === 'yes').length;
+
+            const review = {
+                id: Date.now(),
+                date: document.getElementById('reviewDate').value,
+                matterName: document.getElementById('matterName').value,
+                matterId: document.getElementById('matterId').value,
+                paralegal: document.getElementById('paralegal').value,
+                reviewer: document.getElementById('reviewer').value,
+                practiceArea: document.getElementById('practiceArea').value,
+                pipelineStage: document.getElementById('pipelineStage').value,
+                primaryTrack: document.getElementById('primaryTrack').value,
+                gates: gateResults,
+                checklist: checkResults,
+                pass: pass,
+                fail: fail,
+                na: na,
+                scorePercent: scorePercent,
+                gatesFailed: gatesFailed,
+                actionItems: document.getElementById('actionItems').value
+            };
+
+            reviews.push(review);
+            localStorage.setItem('intakeReviews', JSON.stringify(reviews));
+
+            alert('Review saved successfully!');
+            resetForm();
+            updateParalegalList();
+        });
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+            if (tab === 'review') {
+                document.querySelector('.tab:nth-child(1)').classList.add('active');
+                document.getElementById('review-tab').classList.add('active');
+            } else if (tab === 'history') {
+                document.querySelector('.tab:nth-child(2)').classList.add('active');
+                document.getElementById('history-tab').classList.add('active');
+                loadHistory();
+            } else if (tab === 'grades') {
+                document.querySelector('.tab:nth-child(3)').classList.add('active');
+                document.getElementById('grades-tab').classList.add('active');
+                loadGrades();
+            }
+        }
+
+        function loadHistory() {
+            const tbody = document.getElementById('historyBody');
+            tbody.innerHTML = '';
+
+            const sorted = [...reviews].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            sorted.forEach(review => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${review.date}</td>
+                    <td>${review.matterName}</td>
+                    <td>${review.paralegal}</td>
+                    <td>${review.reviewer}</td>
+                    <td><strong>${review.scorePercent}%</strong></td>
+                    <td>${review.gatesFailed > 0 ? `<span style="color: var(--color-danger);">${review.gatesFailed}</span>` : '0'}</td>
+                    <td>
+                        <button class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;" onclick="viewReview(${review.id})">View</button>
+                        <button class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;" onclick="deleteReview(${review.id})">Delete</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            const totalReviews = reviews.length;
+            const avgScore = reviews.length > 0 ? Math.round(reviews.reduce((sum, r) => sum + r.scorePercent, 0) / reviews.length) : 0;
+            const totalGatesFailed = reviews.reduce((sum, r) => sum + r.gatesFailed, 0);
+
+            const statsDiv = document.getElementById('historyStats');
+            statsDiv.innerHTML = `
+                <div class="score-item">
+                    <div class="score-label">Total Reviews</div>
+                    <div class="score-value">${totalReviews}</div>
+                </div>
+                <div class="score-item">
+                    <div class="score-label">Average Score</div>
+                    <div class="score-value">${avgScore}%</div>
+                </div>
+                <div class="score-item">
+                    <div class="score-label">Total Gates Failed</div>
+                    <div class="score-value">${totalGatesFailed}</div>
+                </div>
+            `;
+        }
+
+        function loadGrades() {
+            const staffDiv = document.getElementById('staffGrades');
+            staffDiv.innerHTML = '';
+
+            const paralegals = {};
+            reviews.forEach(review => {
+                if (!paralegals[review.paralegal]) {
+                    paralegals[review.paralegal] = {
+                        name: review.paralegal,
+                        reviews: [],
+                        totalGatesFailed: 0
+                    };
+                }
+                paralegals[review.paralegal].reviews.push(review);
+                paralegals[review.paralegal].totalGatesFailed += review.gatesFailed;
+            });
+
+            Object.values(paralegals).forEach(staff => {
+                const avgScore = Math.round(staff.reviews.reduce((sum, r) => sum + r.scorePercent, 0) / staff.reviews.length);
+                const gateFailRate = staff.totalGatesFailed / staff.reviews.length;
+
+                let grade, gradeClass;
+                if (avgScore >= 90 && gateFailRate === 0) {
+                    grade = 'A';
+                    gradeClass = 'grade-a';
+                } else if (avgScore >= 80 && gateFailRate < 0.5) {
+                    grade = 'B';
+                    gradeClass = 'grade-b';
+                } else if (avgScore >= 70) {
+                    grade = 'C';
+                    gradeClass = 'grade-c';
+                } else if (avgScore >= 60) {
+                    grade = 'D';
+                    gradeClass = 'grade-d';
+                } else {
+                    grade = 'F';
+                    gradeClass = 'grade-f';
+                }
+
+                const card = document.createElement('div');
+                card.className = 'staff-card';
+                card.innerHTML = `
+                    <div class="staff-name">${staff.name}</div>
+                    <div class="staff-stats">
+                        <div class="stat-row">
+                            <span class="stat-label">Reviews:</span>
+                            <span class="stat-value">${staff.reviews.length}</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Avg Score:</span>
+                            <span class="stat-value">${avgScore}%</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Gates Failed:</span>
+                            <span class="stat-value">${staff.totalGatesFailed}</span>
+                        </div>
+                        <div class="stat-row" style="margin-top: 12px;">
+                            <span class="stat-label">Grade:</span>
+                            <span class="grade ${gradeClass}">${grade}</span>
+                        </div>
+                    </div>
+                `;
+                staffDiv.appendChild(card);
+            });
+
+            if (Object.keys(paralegals).length === 0) {
+                staffDiv.innerHTML = '<p style="text-align: center; color: var(--color-text-secondary);">No reviews submitted yet.</p>';
+            }
+        }
+
+        function viewReview(id) {
+            const review = reviews.find(r => r.id === id);
+            if (!review) return;
+
+            let details = `Matter: ${review.matterName} (${review.matterId})\n`;
+            details += `Paralegal: ${review.paralegal}\n`;
+            details += `Reviewer: ${review.reviewer}\n`;
+            details += `Date: ${review.date}\n`;
+            details += `Score: ${review.scorePercent}% (Pass: ${review.pass}, Fail: ${review.fail}, N/A: ${review.na})\n`;
+            details += `Gates Failed: ${review.gatesFailed}\n\n`;
+            details += `Action Items:\n${review.actionItems}`;
+
+            alert(details);
+        }
+
+        function deleteReview(id) {
+            if (confirm('Are you sure you want to delete this review?')) {
+                reviews = reviews.filter(r => r.id !== id);
+                localStorage.setItem('intakeReviews', JSON.stringify(reviews));
+                loadHistory();
+            }
+        }
+
+        function exportToCSV() {
+            let csv = 'Date,Matter Name,Matter ID,Paralegal,Reviewer,Practice Area,Pass,Fail,N/A,Score %,Gates Failed,Action Items\n';
+
+            reviews.forEach(review => {
+                csv += `"${review.date}","${review.matterName}","${review.matterId}","${review.paralegal}","${review.reviewer}","${review.practiceArea}",${review.pass},${review.fail},${review.na},${review.scorePercent},${review.gatesFailed},"${review.actionItems.replace(/"/g, '""')}"\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `intake-reviews-${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+        }
+
+        function updateParalegalList() {
+            const datalist = document.getElementById('paralegalList');
+            const uniqueParalegals = [...new Set(reviews.map(r => r.paralegal))];
+            datalist.innerHTML = uniqueParalegals.map(p => `<option value="${p}">`).join('');
+        }
+
+        // Initialize immediately - DOM is ready when script runs at end of body
+        console.log('Starting initialization...');
+        console.log('Gates container:', document.getElementById('gatesContainer'));
+        console.log('Checklist container:', document.getElementById('checklistContainer'));
+        
+        initializeForm();
+        
+        console.log('After init - Gates container children:', document.getElementById('gatesContainer').children.length);
+        console.log('After init - Checklist container children:', document.getElementById('checklistContainer').children.length);
+        
+        updateGateStatus();
+        calculateScore();
+        updateParalegalList();
+    </script>
+</body>
+</html>
